@@ -5,6 +5,17 @@ import matplotlib.pyplot as plt
 
 # Function to prepare the dataframe
 def prep(df, df_name):
+    """
+    Prepares the dataframe by renaming columns, converting integer columns to strings, concatenating columns to create a unique tile identifier, 
+    and selecting and renaming the required columns.
+    
+    Parameters:
+    df (pd.DataFrame): The input dataframe with columns ['chr1', 'start1', 'end1', 'chr2', 'start2', 'end2', 'value']
+    df_name (str): The name to be used for the value column in the new dataframe
+    
+    Returns:
+    pd.DataFrame: The processed dataframe with columns ['location', df_name]
+    """
     df.columns = ['chr1', 'start1', 'end1', 'chr2', 'start2', 'end2', 'value']
     
     # Convert the integer columns to strings
@@ -26,6 +37,17 @@ def prep(df, df_name):
 
 # Function to perform PCA and visualize the results
 def pca_drawing(data, prefix, components):
+    """
+    Standardizes the data, performs PCA, saves PCA results to a CSV file, and visualizes the PCA components.
+    
+    Parameters:
+    data (pd.DataFrame): The input dataframe where rows are samples and columns are features
+    prefix (str): The prefix to be used for the output files
+    components (int): Number of principal components to keep
+    
+    Returns:
+    int: 0 upon successful completion
+    """
     # Standardize the data to have a mean of 0 and a variance of 1
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data.T)
@@ -74,11 +96,30 @@ def pca_drawing(data, prefix, components):
 
 # Function to load MicroC data
 def load_microC(filename):
+    """
+    Loads MicroC data from a text file, processes it using the prep function, and returns the processed dataframe.
+    
+    Parameters:
+    filename (str): The name of the text file (without extension) containing the MicroC data
+    
+    Returns:
+    pd.DataFrame: The processed MicroC dataframe
+    """
     data = pd.read_csv(f'{filename}.txt', sep='\t')
     data = prep(data, filename)
     return data
 
 def pca_calculation(*args, prefix = "test"):
+    """
+    Loads multiple MicroC data files, processes them, merges them into a single dataframe, and performs PCA on the combined data.
+    
+    Parameters:
+    *args: Variable length argument list of filenames (without extension) containing the MicroC data
+    prefix (str): The prefix to be used for the output files (default is "test")
+    
+    Returns:
+    str: "the end of command" upon successful completion
+    """
     data = pd.DataFrame()
     for arg in args:
         temp = load_microC(arg)
