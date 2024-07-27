@@ -67,6 +67,3 @@ def pca_calculation(*args, prefix="test", chunksize=10000):
     data.set_index('location', inplace=True)
     pca_drawing(data, prefix, 3)
     return print("the end of command")
-
-# Example call
-pca_calculation("WT-0h-1", "WT-0h-2", "WT-8h-1", "KO-0h-1", "KO-0h-2", "KO-8h-1", prefix="microC", chunksize=10000)
