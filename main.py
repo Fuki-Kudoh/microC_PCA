@@ -1,14 +1,12 @@
+import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import pandas as pd
+from multiprocessing import Pool
 
 def prep(df, df_name):
     df.columns = ['chr1', 'start1', 'end1', 'chr2', 'start2', 'end2', 'value']
-    df['start1'] = df['start1'].astype(str)
-    df['end1'] = df['end1'].astype(str)
-    df['start2'] = df['start2'].astype(str)
-    df['end2'] = df['end2'].astype(str)
+    df = df.astype({'start1': 'str', 'end1': 'str', 'start2': 'str', 'end2': 'str'})
     df['tile'] = df['chr1'] + ':' + df['start1'] + '-' + df['end1'] + ';' + df['chr2'] + ':' + df['start2'] + '-' + df['end2']
     new_df = df[['tile', 'value']]
     new_df.columns = ["location", df_name]
@@ -55,15 +53,25 @@ def load_microC(filename, chunksize=10000):
         chunk = prep(chunk, filename)
         chunk_list.append(chunk)
     data = pd.concat(chunk_list, axis=0)
+    print(f'Loaded data from {filename}.csv')
+    print(data.head())
     return data
 
+def process_file(args):
+    filename, chunksize = args
+    return load_microC(filename, chunksize)
+
 def pca_calculation(*args, prefix="test", chunksize=10000):
-    data = pd.DataFrame(columns=['location'])
-    for arg in args:
-        temp = load_microC(arg, chunksize=chunksize)
-        temp.set_index('location', inplace=True)
-        print(f"Columns to merge: {temp.columns}")
-        data = data.merge(temp, on='location', how='outer').fillna(0)
-    data.set_index('location', inplace=True)
+    pool = Pool()
+    data_frames = pool.map(process_file, [(arg, chunksize) for arg in args])
+    pool.close()
+    pool.join()
+
+    data = pd.concat(data_frames, axis=1)
+    data = data.fillna(0).set_index('location')
+    
+    print("merged data")
+    print(data.head())
+    
     pca_drawing(data, prefix, 3)
     return print("the end of command")
